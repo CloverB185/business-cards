@@ -68,14 +68,13 @@ function list(){
  document.getElementById('add').onclick=()=>{location.hash='new'};
 }
 function showBuiltin(b){
- app.innerHTML='<button class="back">‹ All my cards</button><div class="panel"><h2 style="margin:0 0 4px">'+esc(b.name)+'</h2><p style="margin:0 0 10px;color:#555">Let them scan this with their phone camera</p><div class="qrbox">'+qrSvg(b.url)+'</div><a class="btn p" href="'+b.vcf+'" download="Clover Baker.vcf">Save contact</a><a class="btn s" href="'+b.url+'">Open card page</a></div>';
+ app.innerHTML='<button class="back">‹ All my cards</button><div class="panel"><h2 style="margin:0 0 4px">'+esc(b.name)+'</h2><p style="margin:0 0 10px;color:#555">Let them scan this with their phone camera</p><div class="qrbox">'+qrSvg(b.url)+'</div></div>';
  app.querySelector('.back').onclick=()=>{location.hash=''};
 }
 function showCustom(c){
  const svg=qrSvg(vcard(c,false));
- app.innerHTML='<button class="back">‹ All my cards</button><div class="panel"><h2 style="margin:0 0 4px">'+esc(c.name)+'</h2><p style="margin:0 0 10px;color:#555">Let them scan this with their phone camera</p><div class="qrbox">'+(svg||'<p class="err">Too much text for one QR code. Shorten the details.</p>')+'</div><button class="btn p" id="dl">Save contact</button><button class="btn s" id="ed">Edit</button><button class="btn d" id="del">Delete</button></div>';
+ app.innerHTML='<button class="back">‹ All my cards</button><div class="panel"><h2 style="margin:0 0 4px">'+esc(c.name)+'</h2><p style="margin:0 0 10px;color:#555">Let them scan this with their phone camera</p><div class="qrbox">'+(svg||'<p class="err">Too much text for one QR code. Shorten the details.</p>')+'</div><button class="btn s" id="ed">Edit</button><button class="btn d" id="del">Delete</button></div>';
  app.querySelector('.back').onclick=()=>{location.hash=''};
- document.getElementById('dl').onclick=()=>{const u=URL.createObjectURL(new Blob([vcard(c,true)],{type:'text/vcard'}));const a=document.createElement('a');a.href=u;a.download=c.person+'.vcf';document.body.appendChild(a);a.click();a.remove()};
  document.getElementById('ed').onclick=()=>{location.hash='edit-'+c.id};
  document.getElementById('del').onclick=()=>{if(confirm('Delete '+c.name+' from this phone?')){save(load().filter(x=>x.id!==c.id));location.hash=''}};
 }
