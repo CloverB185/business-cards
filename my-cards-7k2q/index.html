@@ -63,9 +63,36 @@ function list(){
  app.innerHTML='<h1>My business cards</h1><p class="sub">Tap a business to show its QR code.</p>'+
   BUILTIN.map(row).join('')+load().map(c=>row({id:c.id,name:c.name,photo:c.photo,role:c.person+(c.role?', '+c.role:'')})).join('')+
   '<button class="biz" id="add" style="justify-content:center;background:transparent;color:#fff;border:2px dashed #fff">+ Add business</button>'+
+  '<div style="display:flex;gap:10px;margin-top:6px"><button class="btn s" id="bk" style="margin-top:0">Back up</button><button class="btn s" id="rs" style="margin-top:0">Restore</button></div><input type="file" id="rsf" accept=".json,application/json" hidden>'+
   '<p class="hint">Tip: add this page to your home screen so it opens like an app. Businesses you add stay on this phone only.</p>';
  app.querySelectorAll('.biz[data-id]').forEach(el=>el.onclick=()=>{location.hash=el.dataset.id});
  document.getElementById('add').onclick=()=>{location.hash='new'};
+ document.getElementById('bk').onclick=backup;
+ document.getElementById('rs').onclick=()=>document.getElementById('rsf').click();
+ document.getElementById('rsf').onchange=e=>restore(e.target.files[0]);
+}
+function backup(){
+ const a=load();if(!a.length){alert('You have not added any businesses yet, so there is nothing to back up.');return}
+ const d=new Date();const n='my-cards-backup-'+d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')+'.json';
+ const u=URL.createObjectURL(new Blob([JSON.stringify({app:'my-cards',version:1,businesses:a})],{type:'application/json'}));
+ const l=document.createElement('a');l.href=u;l.download=n;document.body.appendChild(l);l.click();l.remove();setTimeout(()=>URL.revokeObjectURL(u),5000);
+}
+function restore(f){
+ if(!f)return;
+ const r=new FileReader();
+ r.onerror=()=>alert('Could not read that file.');
+ r.onload=()=>{
+  let j;try{j=JSON.parse(r.result)}catch(e){alert('That is not a backup file from this app.');return}
+  if(!j||j.app!=='my-cards'||!Array.isArray(j.businesses)){alert('That is not a backup file from this app.');return}
+  const S=v=>typeof v==='string'?v:'';
+  const clean=j.businesses.filter(b=>b&&typeof b==='object'&&S(b.id)&&S(b.name)&&S(b.person)).map(b=>({id:S(b.id).slice(0,60),name:S(b.name).slice(0,120),person:S(b.person).slice(0,120),role:S(b.role).slice(0,120),mobile:S(b.mobile).slice(0,40),office:S(b.office).slice(0,40),email:S(b.email).slice(0,160),website:/^https?:\/\//i.test(S(b.website))?S(b.website).slice(0,200):'',photo:/^data:image\/(png|jpeg|jpg|webp);base64,[A-Za-z0-9+\/=]+$/.test(S(b.photo))?S(b.photo):''}));
+  if(!clean.length){alert('That backup has no businesses in it.');return}
+  const cur=load();const have=new Set(cur.map(x=>x.id));const add=clean.filter(b=>!have.has(b.id));
+  if(!add.length){alert('Everything in that backup is already in the app.');return}
+  if(!confirm('Add '+add.length+' business'+(add.length>1?'es':'')+' from the backup? Businesses already in the app stay as they are.'))return;
+  if(save(cur.concat(add))){alert('Restored.');list()}
+ };
+ r.readAsText(f);
 }
 function showBuiltin(b){
  app.innerHTML='<button class="back">‹ All my cards</button><div class="panel"><h2 style="margin:0 0 4px">'+esc(b.name)+'</h2><p style="margin:0 0 10px;color:#555">Let them scan this with their phone camera</p><div class="qrbox">'+qrSvg(b.url)+'</div></div>';
