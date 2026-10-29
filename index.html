@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>My business cards</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png"><link rel="apple-touch-icon" href="icon-192.png">
+<meta name="theme-color" content="#1a3fbf">
+<style>
+*{box-sizing:border-box}body{margin:0;font-family:system-ui,Segoe UI,Roboto,sans-serif;background:#1a3fbf;color:#fff;min-height:100vh}
+.wrap{max-width:440px;margin:0 auto;padding:26px 18px 40px}
+h1{font-size:26px;margin:6px 0 4px}.sub{opacity:.85;margin:0 0 20px}
+.biz{display:flex;align-items:center;gap:14px;width:100%;background:#fff;color:#111;border:0;border-radius:16px;padding:12px;margin-bottom:12px;font-size:18px;text-align:left;cursor:pointer}
+.biz img{width:56px;height:56px;border-radius:50%;object-fit:cover;border:1px solid #ddd}
+.biz b{display:block}.biz span{font-size:14px;color:#555}
+.panel{background:#fff;color:#111;border-radius:18px;padding:18px;text-align:center}
+.panel img.qr{width:100%;max-width:300px;height:auto}
+.btn{display:block;text-decoration:none;text-align:center;font-weight:700;padding:14px;border-radius:12px;margin-top:10px;font-size:17px;border:0;width:100%;cursor:pointer}
+.p{background:#111;color:#fff}.s{background:#e8edff;color:#1a3fbf}
+.back{background:none;border:0;color:#fff;font-size:17px;margin-bottom:14px;padding:6px 0;cursor:pointer}
+.hint{font-size:13px;opacity:.8;margin-top:18px;text-align:center}
+</style></head><body><div class="wrap" id="app"></div>
+<script>
+// To add a business: add one line here (name, folder, role) and upload that folder.
+const BUSINESSES=[
+ {name:"Collateral Projects",folder:"collateral",role:"Clover Baker, Director"},
+ {name:"Masterfit Glass & Aluminium",folder:"masterfit",role:"Clover Baker, Director"}
+];
+const app=document.getElementById('app');
+const base=location.href.split('#')[0].replace(/index\.html$/,'');
+function esc(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;')}
+function list(){
+ app.innerHTML='<h1>My business cards</h1><p class="sub">Tap a business to show its QR code.</p>'+
+ BUSINESSES.map((b,i)=>`<button class="biz" data-i="${i}"><img src="${b.folder}/photo.jpg" alt=""><div><b>${esc(b.name)}</b><span>${esc(b.role)}</span></div></button>`).join('')+
+ '<p class="hint">Tip: add this page to your home screen so it opens like an app.</p>';
+ app.querySelectorAll('.biz').forEach(el=>el.onclick=()=>{location.hash=BUSINESSES[el.dataset.i].folder});
+}
+function show(b){
+ const url=base+b.folder+'/';
+ app.innerHTML=`<button class="back">‹ All my cards</button><div class="panel"><h2 style="margin:0 0 4px">${esc(b.name)}</h2><p style="margin:0 0 10px;color:#555">Let them scan this with their phone camera</p><img class="qr" src="${b.folder}/qr.png" alt="QR code for ${esc(b.name)}">
+ <a class="btn p" href="${b.folder}/clover-baker.vcf" download="Clover Baker.vcf">Save contact</a>
+ <a class="btn s" href="${b.folder}/">Open card page</a>
+ <button class="btn s" id="copy">Copy link</button></div>`;
+ app.querySelector('.back').onclick=()=>{location.hash=''};
+ const c=document.getElementById('copy');
+ c.onclick=()=>{(navigator.clipboard?navigator.clipboard.writeText(url):Promise.reject()).then(()=>c.textContent='Link copied').catch(()=>{c.textContent=url})};
+}
+function route(){const f=location.hash.slice(1);const b=BUSINESSES.find(x=>x.folder===f);b?show(b):list()}
+window.addEventListener('hashchange',route);route();
+</script></body></html>
